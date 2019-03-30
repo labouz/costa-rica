@@ -205,9 +205,25 @@ names(rateDF) <- c("Cancer", "Female crude", "Female adjusted", "Female LCI", "F
 #convert factor variables to numeric for app
 rateDF[,2:13] <- lapply(rateDF[,2:13], as.numeric)
 
+
+
+#3/30/19 adjusting cancer names to be consistent with cancer names in canton files
+rateDF <- rateDF %>% 
+  mutate(Cancer = case_when(Cancer == "COLON-RECTO" ~ "COLON",
+                            Cancer == "GLANDULA TIROIDES" ~ "TIROIDES",
+                            Cancer == "CUELLO UTERINO" ~ "CUELLO DEL UTERO",
+                            Cancer == "CUERPO UTERINO" ~ "CUERPO DEL UTERO",
+                            Cancer == "GANGLIOS LINFATICOS" ~ "GANGLIOS LINF.",
+                            Cancer == "GLANDULA PROSTATICA" ~ "PROSTATA",
+                            Cancer == "VEJIGA URINARIA" ~ "VEJIGA",
+                            Cancer == "SISTEMAS HEMATOPOYETICO Y RETICULOENDOTELIAL" ~ "Y RETICULOEND.",
+                            Cancer == "COLON-RECTO" ~ "RECTO",
+                            TRUE ~ Cancer
+                            ))
+
 saveRDS(rateDF, file = "Data/rateDF.Rda")
 
-stuff <- map( unique(cancerFemales2009_2014$X__2)[c(-69)], makeSIR)
+#stuff <- map( unique(cancerFemales2009_2014$X__2)[c(-69)], makeSIR)
 
 #as.data.frame(matrix(unlist(stuff), nrow = 4, byrow=TRUE))
 
