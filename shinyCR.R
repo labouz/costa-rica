@@ -88,7 +88,8 @@ ui <- dashboardPage(skin = "black",
                     condition = "input.aSex == 'MUJERES'",
                     selectInput(inputId = "femCancer",
                                 label = "Selecciona un cancer:",
-                                choices = c("PIEL" = "PIEL",
+                                choices = c("TOTAL" = "TOTAL",
+                                            "PIEL" = "PIEL",
                                             "CUELLO DEL UTERO" = "CUELLO DEL UTERO",
                                             "CUERPO DEL UTERO" = "CUERPO DEL UTERO",
                                             "ESTOMAGO" = "ESTOMAGO",
@@ -99,13 +100,14 @@ ui <- dashboardPage(skin = "black",
                                             "OVARIO" = "OVARIO",
                                             "LOCALIZAC." = "LOCALIZAC.",
                                             "TIROIDES" = "TIROIDES"),
-                                selected = "PIEL")),
+                                selected = "TOTAL")),
                   
                   conditionalPanel(
                     condition = "input.aSex == 'VARONES'",
                     selectInput(inputId = "maleCancer",
                                 label = "Selecciona un cancer:",
-                                choices = c("PIEL" = "PIEL",
+                                choices = c("TOTAL" = "TOTAL",
+                                            "PIEL" = "PIEL",
                                             "PROSTATA" = "PROSTATA",
                                             "ESTOMAGO" = "ESTOMAGO",
                                             "GANGLIOS LINF." = "GANGLIOS LINF.",
@@ -116,7 +118,7 @@ ui <- dashboardPage(skin = "black",
                                             "RECTO" = "RECTO",
                                             "LOCALIZAC." = "LOCALIZAC.",
                                             "TIROIDES" = "TIROIDES"),
-                                selected = "PIEL")),
+                                selected = "TOTAL")),
                   
                     width = 3)
                 
@@ -152,10 +154,11 @@ ui <- dashboardPage(skin = "black",
                     condition = "input.aSex2 == 'MUJERES'",
                     selectInput(inputId = "femMort",
                                 label = "Selecciona un cancer:",
-                                choices = c("PANCREAS" = "PANCREAS",
+                                choices = c("TOTAL" = "TOTAL",
+                                            "PANCREAS" = "PANCREAS",
                                             "CUELLO DEL UTERO" = "CUELLO DEL UTERO",
                                             "ESTOMAGO" = "ESTOMAGO",
-                                            "BILIARES INTRAHEP." = "BILIARES INTRAHEP.",
+                                            "HIGADO" = "HIGADO",
                                             "COLON" = "COLON",
                                             "MAMA" = "MAMA",
                                             "PULMON" = "PULMON",
@@ -163,24 +166,25 @@ ui <- dashboardPage(skin = "black",
                                             "LOCALIZAC." = "LOCALIZAC.",
                                             "LINFOMAS" = "LINFOMAS",
                                             "LEUCEMIAS" = "LEUCEMIAS"),
-                                selected = "PANCREAS")),
+                                selected = "TOTAL")),
                   
                   conditionalPanel(
                     condition = "input.aSex2 == 'VARONES'",
                     selectInput(inputId = "maleMort",
                                 label = "Selecciona un cancer:",
-                                choices = c("PANCREAS" = "PANCREAS",
-                                           "PROSTATA" = "PROSTATA",
-                                           "ESTOMAGO" = "ESTOMAGO",
-                                           "BILIARES INTRAHEP." = "BILIARES INTRAHEP.",
-                                           "COLON" = "COLON",
-                                           "ENCEFALO" = "ENCEFALO",
-                                           "PULMON" = "PULMON",
-                                           "RECTO" = "RECTO",
-                                           "LOCALIZAC." = "LOCALIZAC.",
-                                           "LINFOMAS" = "LINFOMAS",
-                                           "LEUCEMIAS" = "LEUCEMIAS"),
-                                selected = "PANCREAS")),
+                                choices = c("TOTAL" = "TOTAL",
+                                            "PANCREAS" = "PANCREAS",
+                                            "PROSTATA" = "PROSTATA",
+                                            "ESTOMAGO" = "ESTOMAGO",
+                                            "HIGADO" = "HIGADO",
+                                            "COLON" = "COLON",
+                                            "ENCEFALO" = "ENCEFALO",
+                                            "PULMON" = "PULMON",
+                                            "RECTO" = "RECTO",
+                                            "LOCALIZAC." = "LOCALIZAC.",
+                                            "LINFOMAS" = "LINFOMAS",
+                                            "LEUCEMIAS" = "LEUCEMIAS"),
+                                selected = "TOTAL")),
                   
                   width = 3)
                 
@@ -272,7 +276,7 @@ server <- function(input, output) {
     
     colorOrder <- cantonInc %>%
       filter(cancer == theCancer, sex == input$aSex) %>% 
-      #filter(cancer == "RECTO"  & region != "COSTA RICA") %>% 
+      #filter(cancer == "RECTO"  ) %>% 
       group_by(cancer, sex) %>% 
       arrange(cancer, sex, desc(rate)) %>% 
       mutate(rank = 1:length(rate)) %>% 
@@ -280,7 +284,7 @@ server <- function(input, output) {
       #        region = str_to_title(`PROVINCIA Y CANTON`)) %>% 
       mutate(region = str_to_title(`PROVINCIA Y CANTON`)) %>% 
       ungroup() %>% 
-      select(region, rate, rank) 
+      select(region, rate, rank, n) 
     
     #print(colorOrder)
     
@@ -305,7 +309,7 @@ server <- function(input, output) {
                   fillColor = ~cancerPal(regions2@data$rank),
                   fillOpacity = 1, color = "black", 
                   popup = paste0(regions2@data$NAME_1, "<br><b>Tasa: </b>", regions2@data$rate, 
-                                 " por 100k personas")) %>% 
+                                 " por 100k personas", "<br><b>Numero: </b>", regions2@data$n)) %>% 
       addLegend("bottomright", 
                 colors  = cancerPal(regions2@data$rank), 
                 labels = levels(cut(regions2@data$rate, breaks = 7, ordered_result = TRUE)),
@@ -336,7 +340,7 @@ server <- function(input, output) {
       #        region = str_to_title(`PROVINCIA Y CANTON`)) %>% 
       mutate(region = str_to_title(`PROVINCIA Y CANTON`)) %>% 
       ungroup() %>% 
-      select(region, rate, rank) 
+      select(region, rate, rank, n) 
     
     #print(colorOrder)
     
@@ -361,10 +365,10 @@ server <- function(input, output) {
                   fillColor = ~cancerPal(regions2@data$rank),
                   fillOpacity = 1, color = "black", 
                   popup = paste0(regions2@data$NAME_1, "<br><b>Tasa: </b>", regions2@data$rate, 
-                                 " por 100k personas")) %>% 
+                                 " por 100k personas","<br><b>Numero: </b>", regions2@data$n)) %>% 
       addLegend("bottomright", 
                 colors  = cancerPal(regions2@data$rank), 
-                labels = levels(cut(regions2@data$rate, breaks = 5, ordered_result = TRUE)),
+                labels = levels(cut(regions2@data$rate, breaks = 7, ordered_result = TRUE)),
                 #values = 1:7,
                 opacity = 1,
                 title = "Est. Rates")
