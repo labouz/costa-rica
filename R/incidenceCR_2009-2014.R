@@ -77,7 +77,7 @@ standPop <- readRDS("./data/standPop.rds")
 
 rateArgs <- expand.grid(theCancer = unique(cancerCases$LOCALIZACION),
                         theYear = 2009:2014, 
-                        theSex = c("VARONES", "MUJERES"),
+                        theSex = c("VARONES", "MUJERES", "TODOS"),
                         stringsAsFactors = FALSE)
 
 makeRate <- function(theCancer, theYear, theSex){
@@ -114,7 +114,8 @@ CR_incRates <- lapply(1:nrow(rateArgs), function(row){
 
 CR_incRates_df <- data.frame(matrix(unlist(CR_incRates,
                                            use.names = TRUE),
-                                    nrow = 252, byrow = TRUE), stringsAsFactors = FALSE)
+                                    nrow = 378, byrow = TRUE), stringsAsFactors = FALSE) %>% 
+  mutate_at(vars(X1:X4), funs(as.numeric))
 
 names(CR_incRates_df) <- names(CR_incRates[[1]])
 

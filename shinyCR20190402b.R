@@ -9,6 +9,7 @@ library(DT)
 library(dplyr)
 library(stringr)
 library(ggplot2)
+library(plotly)
 
 regions <- rgdal::readOGR("maps/CRI_adm","CRI_adm1")
 
@@ -16,7 +17,11 @@ regions <- rgdal::readOGR("maps/CRI_adm","CRI_adm1")
 regions@data$NAME_1 <-  str_replace(regions@data$NAME_1, "Limón", "Limon")
 regions@data$NAME_1 <-  str_replace(regions@data$NAME_1, "San José", "San Jose")
 
+#country 5 yr incidence rates
 countryRate <- readRDS(file = "data/rateDF.Rda")
+
+#country 1 yr incidence rates
+CR_1yrRates <- readRDS("./data/CR_incRates.rds")
 
 
 #ADJUSTED RATES
@@ -59,17 +64,61 @@ ui <- dashboardPage(skin = "black",
                     DTOutput("deathsTable"), 
                     width = 6)
               ),  # end fluidRow
+              
               fluidRow(
-                box(
-                  title = "Tendencias en la incidencia: mujeres, 2009-2014",
-                  plotOutput("femaleTrend"),
-                  width = 6
-                ),
-                box(
-                  title = "Tendencias en la incidencia: varones, 2009-2014",
-                  plotOutput("maleTrend"),
-                  width = 6
+                box(width = 12,
+                  title = "Tendencias en la incidencia: 2009-2014",
+                  fluidRow(
+                    column(width = 3,
+                           radioButtons(inputId = "incSex", 
+                                        label = "selecciona un sexo:",
+                                        choices = c("Todos" = "TODOS",
+                                                    "Mujeres" = "MUJERES",
+                                                    "Varones" = "VARONES"))
+                    ),
+                    column(width = 4,
+                      checkboxGroupInput(inputId = "incCancers",
+                                         label = "selecciona un cancer:",
+                                         choices = c("Total" = "TOTAL",
+                                                     "Piel" = "PIEL",
+                                                     "Estomago" = "ESTOMAGO",
+                                                     "Ganglios Linfaticos" = "GANGLIOS LINFATICOS",
+                                                     "Colon" = "COLON",
+                                                     "Hematopoyetico y Reticuloendotelial" = "SISTEMAS HEMATOPOYETICO Y RETICULOENDOTELIAL",
+                                                     "Tiroides" = "GLANDULA TIROIDES"),
+                                         selected = c("PIEL","COLON","ESTOMAGO",
+                                                      "GLANDULA TIROIDES",
+                                                      "GANGLIOS LINFATICOS"))
+                    ),
+                    column(width = 2,
+                      conditionalPanel(condition = "input.incSex == 'MUJERES'",
+                                       checkboxGroupInput(inputId = "incCancers_fem",
+                                                          label = "cánceres superiores para las mujeres:",
+                                                          choices = c("Mama" = "MAMA",
+                                                                      "Ovario" = "OVARIO",
+                                                                      "Cuello Uterino" = "CUELLO UTERINO",
+                                                                      "Cuerpo Uterino" = "CUERPO UTERINO"))),
+                      conditionalPanel(condition = "input.incSex == 'VARONES'",
+                                       checkboxGroupInput(inputId = "incCancers_male",
+                                                          label = "cánceres superiores para los hombres:",
+                                                          choices = c("Prostata" = "GLANDULA PROSTATICA",
+                                                                      "Testiculos" = "TESTICULOS",
+                                                                      "Rinon" = "RIÑON",
+                                                                      "Vejiga" = "VEJIGA URINARIA",
+                                                                      "Higado" = "HIGADO Y CONDUCTOS BILIARES INTRAHEPATICOS",
+                                                                      "Bronquios y Pulmon" = "BRONQUIOS Y PULMON")))
+                    )),
+                  fluidRow(             
+                    plotlyOutput("incTrend"),
+                    width = 12
+                  )
                 )
+                
+                # box(
+                #   title = "Tendencias en la incidencia: varones, 2009-2014",
+                #   plotOutput("maleTrend"),
+                #   width = 6
+                # )
               )
               
         ), # end tabItems country
@@ -214,14 +263,21 @@ ui <- dashboardPage(skin = "black",
 
 server <- function(input, output) {
   
-  output$femaleTrend <- renderPlot(
+  output$incTrend <- renderPlotly({
     
-    ggplot(data = topRates09_14[which(topRates09_14$sex=="mujeres"),]) +
-      geom_line(aes(x = year, y = rate, color = Cancer),
+   
+    
+    theSex <- input$incSex
+    cancers <- c(input$incCancers, input$incCancers_fem, input$incCancers_male)
+    theData <- filter(CR_1yrRates, sex == theSex, site %in% cancers)
+    #browser()
+    
+    ggplot(data = theData) +
+      geom_line(aes(x = as.numeric(year), y = adj.rate, color = site),
                 size = 1.5) +
-      labs(x = "Ano", y = "Tasa por 100 000 mujeres") +
+      labs(x = "Ano", y = "Tasa por 100 000") +
       theme_minimal()
-  )
+  })
   
   output$maleTrend <- renderPlot(
     
