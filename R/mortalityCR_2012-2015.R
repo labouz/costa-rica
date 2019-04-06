@@ -11,7 +11,7 @@ library(readxl)
 # getMort <- function(theYear, theSex) {
 #   mort_cases <- read_excel(paste0("data/raw/Mortality/MORT.", theSex, " POR LOCALIZ.Y GRUP.EDAD ", theYear,".xls"),
 #                              sheet = "top10")
-#   
+# 
 #   mort_cases <- mort_cases[,-2:-3]
 # 
 #   #transform from wide to long
@@ -56,7 +56,7 @@ library(readxl)
 #saveRDS(popAtRisk, "./data/popAtRisk_2009-2015.rds")
 
 
-#args <- expand.grid(theYear = 2012:2015, theSex = c("HOMBRES", "MUJERES"))
+args <- expand.grid(theYear = 2012:2015, theSex = c("HOMBRES", "MUJERES"))
 
 #####Cases and at risk pops
 mortCases_bysex <- map2_dfr(args$theYear, args$theSex, getMort) %>%
@@ -66,14 +66,16 @@ mortCases_bysex <- map2_dfr(args$theYear, args$theSex, getMort) %>%
 
 #####Create everyone groups
 
-# mortCases_todos <- mortCases_bysex %>%
-#   group_by(LOCALIZACION, agegrp, year) %>%
-#   summarise(cases = sum(as.numeric(cases))) %>%
-#   mutate(sex = "TODOS")
+mortCases_todos <- mortCases_bysex %>%
+  group_by(LOCALIZACION, agegrp, year) %>%
+  summarise(cases = sum(as.numeric(cases))) %>%
+  mutate(sex = "TODOS")
 
 #bind to cases
-# mortCases <- bind_rows(mortCases_bysex, mortCases_todos)
-# saveRDS(mortCases, "./data/mortCases_2012-2015.rds")
+mortCases <- bind_rows(mortCases_bysex, mortCases_todos) %>% 
+  mutate(sex = if_else(sex == "HOMBRES", "VARONES", sex))
+
+#saveRDS(mortCases, "./data/mortCases_2012-2015.rds")
 
 mortCases <- readRDS("./data/mortCases_2012-2015.rds")
 popAtRisk <- readRDS( "./data/popAtRisk_2009-2015.rds")

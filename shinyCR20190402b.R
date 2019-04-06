@@ -23,6 +23,8 @@ countryRate <- readRDS(file = "data/rateDF.Rda")
 #country 1 yr incidence rates
 CR_1yrRates <- readRDS("./data/CR_incRates.rds")
 
+#country 1 yr mortality rates
+CR_1yrMortRates <- readRDS("./data/CR_mortRates.rds")
 
 #ADJUSTED RATES
 cantonInc <- readRDS("./Data/cantonIncidence.rds")
@@ -67,61 +69,101 @@ ui <- dashboardPage(skin = "black",
               
               fluidRow(
                 box(width = 12,
-                  title = "Tendencias en la incidencia: 2009-2014",
-                  fluidRow(
-                    column(width = 3,
-                           radioButtons(inputId = "incSex", 
-                                        label = "selecciona un sexo:",
-                                        choices = c("Todos" = "TODOS",
-                                                    "Mujeres" = "MUJERES",
-                                                    "Varones" = "VARONES"))
+                    title = "Tendencias en la incidencia: 2009-2014",
+                    fluidRow(
+                      column(width = 3,
+                             radioButtons(inputId = "incSex", 
+                                          label = "selecciona un sexo:",
+                                          choices = c("Todos" = "TODOS",
+                                                      "Mujeres" = "MUJERES",
+                                                      "Varones" = "VARONES"))
+                      ),
+                      column(width = 4,
+                             checkboxGroupInput(inputId = "incCancers",
+                                                label = "selecciona un cancer:",
+                                                choices = c("Total" = "TOTAL",
+                                                            "Piel" = "PIEL",
+                                                            "Estomago" = "ESTOMAGO",
+                                                            "Ganglios Linfaticos" = "GANGLIOS LINFATICOS",
+                                                            "Colon" = "COLON",
+                                                            "Hematopoyetico y Reticuloendotelial" = "SISTEMAS HEMATOPOYETICO Y RETICULOENDOTELIAL",
+                                                            "Tiroides" = "GLANDULA TIROIDES"),
+                                                selected = c("PIEL","COLON","ESTOMAGO",
+                                                             "GLANDULA TIROIDES",
+                                                             "GANGLIOS LINFATICOS"))
+                      ),
+                      column(width = 2,
+                             conditionalPanel(condition = "input.incSex == 'MUJERES'",
+                                              checkboxGroupInput(inputId = "incCancers_fem",
+                                                                 label = "cánceres superiores para las mujeres:",
+                                                                 choices = c("Mama" = "MAMA",
+                                                                             "Ovario" = "OVARIO",
+                                                                             "Cuello Uterino" = "CUELLO UTERINO",
+                                                                             "Cuerpo Uterino" = "CUERPO UTERINO"))),
+                             conditionalPanel(condition = "input.incSex == 'VARONES'",
+                                              checkboxGroupInput(inputId = "incCancers_male",
+                                                                 label = "cánceres superiores para los hombres:",
+                                                                 choices = c("Prostata" = "GLANDULA PROSTATICA",
+                                                                             "Testiculos" = "TESTICULOS",
+                                                                             "Rinon" = "RIÑON",
+                                                                             "Vejiga" = "VEJIGA URINARIA",
+                                                                             "Higado" = "HIGADO Y CONDUCTOS BILIARES INTRAHEPATICOS",
+                                                                             "Bronquios y Pulmon" = "BRONQUIOS Y PULMON")))
+                      )),
+                    fluidRow(             
+                      plotlyOutput("incTrend"),
+                      width = 12
                     ),
-                    column(width = 4,
-                      checkboxGroupInput(inputId = "incCancers",
-                                         label = "selecciona un cancer:",
-                                         choices = c("Total" = "TOTAL",
-                                                     "Piel" = "PIEL",
-                                                     "Estomago" = "ESTOMAGO",
-                                                     "Ganglios Linfaticos" = "GANGLIOS LINFATICOS",
-                                                     "Colon" = "COLON",
-                                                     "Hematopoyetico y Reticuloendotelial" = "SISTEMAS HEMATOPOYETICO Y RETICULOENDOTELIAL",
-                                                     "Tiroides" = "GLANDULA TIROIDES"),
-                                         selected = c("PIEL","COLON","ESTOMAGO",
-                                                      "GLANDULA TIROIDES",
-                                                      "GANGLIOS LINFATICOS"))
-                    ),
-                    column(width = 2,
-                      conditionalPanel(condition = "input.incSex == 'MUJERES'",
-                                       checkboxGroupInput(inputId = "incCancers_fem",
-                                                          label = "cánceres superiores para las mujeres:",
-                                                          choices = c("Mama" = "MAMA",
-                                                                      "Ovario" = "OVARIO",
-                                                                      "Cuello Uterino" = "CUELLO UTERINO",
-                                                                      "Cuerpo Uterino" = "CUERPO UTERINO"))),
-                      conditionalPanel(condition = "input.incSex == 'VARONES'",
-                                       checkboxGroupInput(inputId = "incCancers_male",
-                                                          label = "cánceres superiores para los hombres:",
-                                                          choices = c("Prostata" = "GLANDULA PROSTATICA",
-                                                                      "Testiculos" = "TESTICULOS",
-                                                                      "Rinon" = "RIÑON",
-                                                                      "Vejiga" = "VEJIGA URINARIA",
-                                                                      "Higado" = "HIGADO Y CONDUCTOS BILIARES INTRAHEPATICOS",
-                                                                      "Bronquios y Pulmon" = "BRONQUIOS Y PULMON")))
-                    )),
-                  fluidRow(             
-                    plotlyOutput("incTrend"),
-                    width = 12
-                  )
-                )
-                
-                # box(
-                #   title = "Tendencias en la incidencia: varones, 2009-2014",
-                #   plotOutput("maleTrend"),
-                #   width = 6
-                # )
-              )
-              
-        ), # end tabItems country
+                    br(),
+                    br(),
+                    fluidRow(
+                      box(width = 12,
+                          title = "Tendencias en la mortalidad: 2012-2015",
+                          fluidRow(
+                            column(width = 3,
+                                   radioButtons(inputId = "mortSex", 
+                                                label = "selecciona un sexo:",
+                                                choices = c("Todos" = "TODOS",
+                                                            "Mujeres" = "MUJERES",
+                                                            "Varones" = "VARONES"))
+                            ),
+                            column(width = 4,
+                                   checkboxGroupInput(inputId = "mortCancers",
+                                                      label = "selecciona un cancer:",
+                                                      choices = c("Total" = "TOTAL",
+                                                                  "Encefalo" = "ENCEFALO",
+                                                                  "Estomago" = "ESTOMAGO",
+                                                                  "Pancreas" = "PANCREAS",
+                                                                  "Vejiga" = "VEJIGA URINARIA",
+                                                                  "Bronquis" = "BRONQUIOS Y PULMON",
+                                                                  "Colon" = "COLON",
+                                                                  "Leucemia" = "LEUCEMIA LINFOIDE",
+                                                                  "Higado" = "HIGADO Y VIAS BILIARES INTRAH."),
+                                                      selected = c("PANCREAS","COLON","ESTOMAGO",
+                                                                   "ENCEFALO",
+                                                                   "VEJIGA URINARIA"))
+                            ),
+                            column(width = 2,
+                                   conditionalPanel(condition = "input.mortSex == 'MUJERES'",
+                                                    checkboxGroupInput(inputId = "mortCancers_fem",
+                                                                       label = "cánceres superiores para las mujeres:",
+                                                                       choices = c("Mama" = "MAMA",
+                                                                                   "Ovario" = "OVARIO",
+                                                                                   "Cuello Uterino" = "CUELLO UTERINO"))),
+                                   conditionalPanel(condition = "input.mortSex == 'VARONES'",
+                                                    checkboxGroupInput(inputId = "mortCancers_male",
+                                                                       label = "cánceres superiores para los hombres:",
+                                                                       choices = c("Prostata" = "GLANDULA PROSTATICA")))
+                            )),
+                          fluidRow(             
+                            plotlyOutput("mortTrend"),
+                            width = 12
+                          )
+                      )#end box
+                    ) #end fluidRow
+                ) #end box
+              ) #end fluidRow
+              ), # end tabItems country
       
       tabItem(tabName = "incidence",
               fluidRow(
@@ -279,14 +321,26 @@ server <- function(input, output) {
       theme_minimal()
   })
   
-  output$maleTrend <- renderPlot(
+  output$mortTrend <- renderPlotly({
     
-    ggplot(data = topRates09_14[which(topRates09_14$sex=="varones"),]) +
-      geom_line(aes(x = year, y = rate, color = Cancer),
+    
+    
+    theSex <- input$mortSex
+    cancers <- c(input$mortCancers, input$mortCancers_fem, input$mortCancers_male)
+    theData <- filter(CR_1yrMortRates, sex == theSex, site %in% cancers)
+    #browser()
+    
+    ggplot(data = theData) +
+      geom_line(aes(x = as.numeric(year), y = adj.rate, color = site),
                 size = 1.5) +
-      labs(x = "Ano", y = "Tasa por 100 000 varones") +
+      labs(x = "Ano", y = "Tasa por 100 000") +
       theme_minimal()
-  )
+    
+    # plot_ly(data = theData, x = ~as.numeric(year), y = ~adj.rate, 
+    #         type = "scatter", mode = "lines") %>% 
+    #   
+    #   add_trace(hoverinfo = theData$year)
+  })
   
   output$casesTable <- renderDT({
    datatable(
