@@ -27,6 +27,8 @@ getCantonRate <- function(theYear) {
     group_by(`PROVINCIA Y CANTON`) %>% 
     summarise(pop = sum(pop.x, pop.y))
   
+  saveRDS(cantonPop, paste0("./data/cantonPeoplePop",theYear,".rds"))
+  
   #####IMPORT CANCER STUFF
   
   #import incidence rates and numbers from 2014 for the cantons

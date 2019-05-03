@@ -3,11 +3,14 @@ library(readr)
 library(readxl)
 
 #csv file with cases per year
-casesYear <- read_csv2("./data/cancerPerYear.csv", col_names = TRUE)
+#casesYear <- read_csv2("./data/raw/cancerPerYear.csv", col_names = TRUE)
 
+cases2014 <- read_xlsx("./data/raw/INCIDENCIA_2014_DIFERENTES_CARACTERISTICAS.xlsx", 
+                       sheet = "10 MAS FREC. GR. EDAD VARONES", range = "B9:C18", 
+                       col_names = FALSE)
+colnames(cases2014) <- c("site", "Cancer")
 #year 2014
-cases14 <- select(casesYear, -1) %>% #remove first column - numbered list
-  filter(year == 2014) %>% 
+cases14 <- cases2014 %>% 
   arrange(desc(Cancer))
 
 saveRDS(cases14, "./Data/2014CancerCases.rds")

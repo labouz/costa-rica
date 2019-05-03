@@ -232,28 +232,27 @@ ui <- dashboardPage(skin = "black",
             
               box(selectInput(inputId = "incYear",
                               label = "Selecciona un ano:",
-                              choices = c("2010" = 2010,
-                                          "2011" = 2011,
-                                          "2012" = 2012,
+                              choices = c("2012" = 2012,
                                           "2013" = 2013,
-                                          "2014" = 2014)),
+                                          "2014" = 2014,
+                                          "2015" = 2015)),
                 
               width = 2)
               ), #end fluidRow
               br(),
               br(),
               fluidRow(
-                box(title = "Incidencia de cancer por 100 000 personas",
+                box(title = HTML(paste(textOutput("incTitle"), textOutput("countryInc"), sep = "<br/>")),
                     width = 12,
                     leafletOutput(outputId = "incMap", height = 400))
               ),
               br(),
-              br(),
-              fluidRow(
-                box(title = "Tasas del pais",
-                    width = 12,
-                    DTOutput(outputId = "countryRates"))
-              )
+              br()
+              # fluidRow(
+              #   box(title = "Tasas del pais",
+              #       width = 12,
+              #       DTOutput(outputId = "countryRates"))
+              # )
             
       ), # end tabItem incidence
       
@@ -261,9 +260,10 @@ ui <- dashboardPage(skin = "black",
               fluidRow(
                 box(radioButtons(inputId = "aSex2",
                                  label = "Selecciona un sexo:",
-                                 choices = c("MUJERES" = "MUJERES",
+                                 choices = c("TODOS" = "TODOS",
+                                             "MUJERES" = "MUJERES",
                                              "VARONES" = "VARONES"),
-                                 selected = "MUJERES"),
+                                 selected = "TODOS"),
                     width = 2),
                 
                 box(
@@ -303,13 +303,38 @@ ui <- dashboardPage(skin = "black",
                                             "LEUCEMIAS" = "LEUCEMIAS"),
                                 selected = "TOTAL")),
                   
-                  width = 3)
+                  conditionalPanel(
+                    condition = "input.aSex2 == 'TODOS'",
+                    selectInput(inputId = "peopleMort",
+                                label = "Selecciona un cancer:",
+                                choices = c("TOTAL" = "TOTAL",
+                                            "PIEL" = "PIEL",
+                                            "ESTOMAGO" = "ESTOMAGO",
+                                            "GANGLIOS LINF." = "GANGLIOS LINF.",
+                                            "COLON" = "COLON",
+                                            "PULMON" = "PULMON",
+                                            "Y RETICULOEND." = "Y RETICULOEND.",
+                                            "RECTO" = "RECTO",
+                                            "LOCALIZAC." = "LOCALIZAC.",
+                                            "TIROIDES" = "TIROIDES"),
+                                selected = "TOTAL")),
+                  
+                  width = 3),
                 
-              ),
+                box(selectInput(inputId = "mortYear",
+                                label = "Selecciona un ano:",
+                                choices = c("2011" = 2011,
+                                            "2012" = 2012,
+                                            "2013" = 2013,
+                                            "2014" = 2014)),
+                    
+                    width = 2)
+                ),
+              
               br(),
               br(),
               fluidRow(
-                box(title = "Mortalidad de cancer por 100 000 personas",
+                box(title = HTML(paste(textOutput("mortTitle"), textOutput("countryMort"), sep = "<br/>")),
                     width = 12,
                     leafletOutput(outputId = "mortMap", height = 400))
               ),
@@ -360,7 +385,7 @@ server <- function(input, output) {
   
   output$casesTable <- renderDT({
    datatable(
-     cases14[1:5,2:3],
+     cases14[1:5,],
      colnames = c("Cancer", "Cases"),
      options = list(sDom  = '<"top">lrt<"bottom">',
                     lengthChange = FALSE, autoHideNavigation = TRUE)
@@ -377,6 +402,20 @@ server <- function(input, output) {
   })
   
 
+  output$incTitle <- renderText({
+    if(input$aSex == "MUJERES"){
+      theCancer <- input$femCancer
+    }
+    if(input$aSex == "VARONES"){
+      theCancer <- input$maleCancer
+    }
+    if(input$aSex == "TODOS"){
+      theCancer <- input$peopleCancer
+    }
+    
+    paste0("Incendencia de cancer por 100 000 personas -- ", "Cancer: ", theCancer, 
+           ", Ano: ", input$incYear)
+  })
   
   output$incMap <- renderLeaflet({
     library(stringr)
@@ -424,9 +463,24 @@ server <- function(input, output) {
                 colors  = cancerPal(7:1), 
                 labels = theLabels,
                 opacity = 1,
-                title = "Est. Rates")
+                title = "Est. Rates") 
     
   }) # end renderLeaflet map
+  
+  output$mortTitle <- renderText({
+    if(input$aSex2 == "MUJERES"){
+      theCancer <- input$femMort
+    }
+    if(input$aSex2 == "VARONES"){
+      theCancer <- input$maleMort
+    }
+    if(input$aSex2 == "TODOS"){
+      theCancer <- input$peopleMort
+    }
+    
+    paste0("Mortalidad de cancer por 100 000 personas -- ", "Cancer: ", theCancer, 
+           ", Ano: ", input$mortYear)
+  })
   
   output$mortMap <- renderLeaflet({
     library(stringr)
@@ -437,9 +491,12 @@ server <- function(input, output) {
     if(input$aSex2 == "VARONES"){
       theCancer <- input$maleMort
     }
+    if(input$aSex == "TODOS"){
+      theCancer <- input$peopleMort
+    }
     
     colorOrder <- cantonMort %>%
-      filter(cancer == theCancer, sex == input$aSex2) %>% 
+      filter(cancer == theCancer, sex == input$aSex2, year == input$mortYear) %>% 
       group_by(cancer, sex) %>% 
       arrange(cancer, sex, desc(rate)) %>% 
       mutate(rank = as.factor(rank(rate))) %>% 
@@ -457,22 +514,21 @@ server <- function(input, output) {
     theLabels[2:3] <- ""
     theLabels[5:6] <- ""
     
-    
     leaflet() %>%
       addProviderTiles(providers$Esri.WorldGrayCanvas) %>% 
       setView(lat = 9.55, lng = -84, zoom = 7) %>% 
       addPolygons(data = regions2, 
                   layerId = regions2@data$ID_1,
                   weight = 2, 
-                  fillColor = ~cancerPal(regions2@data$rank),
+                  fillColor = ~cancerPal( regions2@data$rank),
                   fillOpacity = 1, color = "black", 
                   popup = paste0(regions2@data$NAME_1, "<br><b>Tasa: </b>", regions2@data$rate, 
-                                 " por 100k personas","<br><b>Numero: </b>", regions2@data$n)) %>% 
+                                 " por 100k personas", "<br><b>Numero: </b>", regions2@data$n)) %>% 
       addLegend("bottomleft", 
                 colors  = cancerPal(7:1), 
                 labels = theLabels,
                 opacity = 1,
-                title = "Est. Rates")
+                title = "Est. Rates") 
     
   })
   
@@ -539,24 +595,48 @@ server <- function(input, output) {
   #   ) # end datatable
   # })
   
-  output$countryRates <- renderDT({
+  output$countryInc <- renderText({
     x <- as_tibble(countryRate[, c(1, 3, 7, 11)])
     colnames(x) <- c("Cancer", "Mujeres", "Hombres", "Todos")
-    
-    #cancer name
-    #theCancer <- if_else(is.null(input$femCancer) == FALSE, input$femCancer, input$maleCancer)
+   
     if(input$aSex == "MUJERES"){
       theCancer <- input$femCancer
+      x <- select(x, c(Cancer,Mujeres))
     }
     if(input$aSex == "VARONES"){
       theCancer <- input$maleCancer
+      x <- select(x, c(Cancer,Hombres))
+    }
+    if(input$aSex == "TODOS"){
+      theCancer <- input$peopleCancer
+      x <- select(x, c(Cancer,Todos))
     }
     
-    x[x$Cancer == theCancer,]
+    paste0("Tasa de pais: ", as.character(x[x$Cancer == theCancer,2]), " por 100 000 personas")
     
-  }, options = list(sDom  = '<"top">lrt<"bottom">ip', lengthChange = FALSE)) # end renderDT output$countryRates
+  })
   
   
+  output$countryMort <- renderText({
+    x <- CR_1yrMortRates
+    theYear <- input$mortYear
+    
+    if(input$aSex == "MUJERES"){
+      theCancer <- input$femMort
+      x <- filter(x, site == theCancer, sex == "MUJERES", year == theYear)
+    }
+    if(input$aSex == "VARONES"){
+      theCancer <- input$maleMort
+      x <- filter(x, site == theCancer, sex == "VARONES", year == theYear)
+    }
+    if(input$aSex == "TODOS"){
+      theCancer <- input$peopleMort
+      x <- filter(x, site == theCancer, sex == "TODOS", year == theYear)
+    }
+    
+    paste0("Tasa de pais: ", as.character(x$adj.rate), " por 100 000 personas")
+    
+  })
 } # end server
 
 shinyApp(ui = ui, server = server)
