@@ -221,7 +221,7 @@ rateDF <- rateDF %>%
                             TRUE ~ Cancer
                             ))
 
-saveRDS(rateDF, file = "Data/rateDF.Rda")
+saveRDS(rateDF, file = "data/rateDF.rds")
 
 #stuff <- map( unique(cancerFemales2009_2014$X__2)[c(-69)], makeSIR)
 
