@@ -27,8 +27,8 @@ CR_1yrRates <- readRDS("./data/CR_incRates.rds")
 CR_1yrMortRates <- readRDS("./data/CR_mortRates.rds")
 
 #UNADJUSTED RATES
-cantonInc <- readRDS("./Data/cantonIncidence.rds")
-cantonMort <- readRDS("./Data/cantonMortality.rds")
+cantonInc <- readRDS("./data/cantonIncidence.rds")
+cantonMort <- readRDS("./data/cantonMortality.rds")
 
 #country cases
 cases14 <- readRDS("./data/2014CancerCases.rds")
