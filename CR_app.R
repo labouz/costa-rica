@@ -242,17 +242,13 @@ ui <- dashboardPage(skin = "black",
               br(),
               br(),
               fluidRow(
-                box(title = HTML(paste(textOutput("incTitle"), textOutput("countryInc"), sep = "<br/>")),
+                box(title = HTML(paste(textOutput("incTitle"), 
+                                       textOutput("countryInc"), sep = "<br/>")),
                     width = 12,
                     leafletOutput(outputId = "incMap", height = 400))
               ),
               br(),
               br()
-              # fluidRow(
-              #   box(title = "Tasas del pais",
-              #       width = 12,
-              #       DTOutput(outputId = "countryRates"))
-              # )
             
       ), # end tabItem incidence
       
