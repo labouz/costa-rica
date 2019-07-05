@@ -59,10 +59,12 @@ ui <- dashboardPage(skin = "black",
     tabItems(
       tabItem(tabName = "country",
               fluidRow(
-                box(title = "casos de cáncer", 
-                    DTOutput("casesTable"), 
+                box(title = "Casos de Cáncer - 2014", 
+                    solidHeader = TRUE,
+                    collapsible = TRUE,
+                    div(style = 'overflow-y: scroll', DT::dataTableOutput("casesTable")), 
                     width = 6),
-                box(title = "casos de muertes", 
+                box(title = "Casos de Muertes - 2014", 
                     DTOutput("deathsTable"), 
                     width = 6)
               ),  # end fluidRow
@@ -379,10 +381,16 @@ server <- function(input, output) {
 
   })
   
+  casesTable_fun <- reactive({
+    cases14
+    
+  })
+  
   output$casesTable <- renderDT({
    datatable(
-     cases14[1:5,],
-     colnames = c("Cancer", "Cases"),
+     casesTable_fun(),
+     rownames = FALSE,
+     colnames = c("Cancer", "Casos"),
      options = list(sDom  = '<"top">lrt<"bottom">',
                     lengthChange = FALSE, autoHideNavigation = TRUE)
    )
@@ -390,8 +398,8 @@ server <- function(input, output) {
   
   output$deathsTable <- renderDT({
     datatable(
-      mort14[1:5,c(1,4)],
-      colnames = c("Cancer", "Cases"),
+      mort14[c(2,5)],
+      colnames = c("Cancer", "Casos"),
       options = list(sDom  = '<"top">lrt<"bottom">',
                      lengthChange = FALSE, autoHideNavigation = TRUE)
     )
