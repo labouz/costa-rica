@@ -59,13 +59,13 @@ ui <- dashboardPage(skin = "black",
     tabItems(
       tabItem(tabName = "country",
               fluidRow(
-                box(title = "Casos de Cáncer - 2014", 
-                    solidHeader = TRUE,
-                    collapsible = TRUE,
-                    div(style = 'overflow-y: scroll', DT::dataTableOutput("casesTable")), 
+                box(title = "Casos de Cáncer - 2014",
+                    style = "height:500px; overflow-y: scroll;", 
+                    DT::dataTableOutput("casesTable"), 
                     width = 6),
-                box(title = "Casos de Muertes - 2014", 
-                    DTOutput("deathsTable"), 
+                box(title = "Casos de Muertes - 2014",
+                    style = "height:500px; overflow-y: scroll;", 
+                    DT::dataTableOutput("deathsTable"),
                     width = 6)
               ),  # end fluidRow
               
@@ -171,9 +171,9 @@ ui <- dashboardPage(skin = "black",
               fluidRow(
                 box(radioButtons(inputId = "aSex",
                                  label = "Selecciona un sexo:",
-                                 choices = c("TODOS" = "TODOS",
-                                             "MUJERES" = "MUJERES",
-                                             "VARONES" = "VARONES"),
+                                 choices = c("Todos" = "TODOS",
+                                             "Mujeres" = "MUJERES",
+                                             "Varones" = "VARONES"),
                                  selected = "TODOS"),
                     width = 2),
                 
@@ -182,62 +182,59 @@ ui <- dashboardPage(skin = "black",
                     condition = "input.aSex == 'MUJERES'",
                     selectInput(inputId = "femCancer",
                                 label = "Selecciona un cancer:",
-                                choices = c("TOTAL" = "TOTAL",
-                                            "PIEL" = "PIEL",
-                                            "CUELLO DEL UTERO" = "CUELLO DEL UTERO",
-                                            "CUERPO DEL UTERO" = "CUERPO DEL UTERO",
-                                            "ESTOMAGO" = "ESTOMAGO",
-                                            "GANGLIOS LINF." = "GANGLIOS LINF.",
-                                            "COLON" = "COLON",
-                                            "MAMA" = "MAMA",
-                                            "PULMON" = "PULMON",
-                                            "OVARIO" = "OVARIO",
-                                            "LOCALIZAC." = "LOCALIZAC.",
-                                            "TIROIDES" = "TIROIDES"),
+                                choices = c("Total" = "TOTAL",
+                                            "Piel" = "PIEL",
+                                            "Cuello del Utero" = "CUELLO DEL UTERO",
+                                            "Cuerpo del Utero" = "CUERPO DEL UTERO",
+                                            "Estomago" = "ESTOMAGO",
+                                            "Ganglios Linf." = "GANGLIOS LINF.",
+                                            "Colon" = "COLON",
+                                            "Mama" = "MAMA",
+                                            "Pulmon" = "PULMON",
+                                            "Ovario" = "OVARIO",
+                                            "Tiroides" = "TIROIDES"),
                                 selected = "TOTAL")),
                   
                   conditionalPanel(
                     condition = "input.aSex == 'VARONES'",
                     selectInput(inputId = "maleCancer",
                                 label = "Selecciona un cancer:",
-                                choices = c("TOTAL" = "TOTAL",
-                                            "PIEL" = "PIEL",
-                                            "PROSTATA" = "PROSTATA",
-                                            "ESTOMAGO" = "ESTOMAGO",
-                                            "GANGLIOS LINF." = "GANGLIOS LINF.",
-                                            "COLON" = "COLON",
-                                            "PULMON" = "PULMON",
-                                            "VEJIGA" = "VEJIGA",
-                                            "Y RETICULOEND." = "Y RETICULOEND.",
-                                            "RECTO" = "RECTO",
-                                            "LOCALIZAC." = "LOCALIZAC.",
-                                            "TIROIDES" = "TIROIDES"),
+                                choices = c("Total" = "TOTAL",
+                                            "Piel" = "PIEL",
+                                            "Prostata" = "PROSTATA",
+                                            "Estomago" = "ESTOMAGO",
+                                            "Ganglios Linf." = "GANGLIOS LINF.",
+                                            "Colon" = "COLON",
+                                            "Pulmon" = "PULMON",
+                                            "Vejiga" = "VEJIGA",
+                                            "Y Reticuloend." = "Y RETICULOEND.",
+                                            "Recto" = "RECTO",
+                                            "Tiroides" = "TIROIDES"),
                                 selected = "TOTAL")),
                   
                   conditionalPanel(
                     condition = "input.aSex == 'TODOS'",
                     selectInput(inputId = "peopleCancer",
                                 label = "Selecciona un cancer:",
-                                choices = c("TOTAL" = "TOTAL",
-                                            "PIEL" = "PIEL",
-                                            "ESTOMAGO" = "ESTOMAGO",
-                                            "GANGLIOS LINF." = "GANGLIOS LINF.",
-                                            "COLON" = "COLON",
-                                            "PULMON" = "PULMON",
-                                            "Y RETICULOEND." = "Y RETICULOEND.",
-                                            "RECTO" = "RECTO",
-                                            "LOCALIZAC." = "LOCALIZAC.",
-                                            "TIROIDES" = "TIROIDES"),
+                                choices = c("Total" = "TOTAL",
+                                            "Piel" = "PIEL",
+                                            "Estomago" = "ESTOMAGO",
+                                            "Ganglios Linf." = "GANGLIOS LINF.",
+                                            "Colon" = "COLON",
+                                            "Pulmon" = "PULMON",
+                                            "Y Reticuloend." = "Y RETICULOEND.",
+                                            "Recto" = "RECTO",
+                                            "Tiroides" = "TIROIDES"),
                                 selected = "TOTAL")),
                   
                     width = 3),
             
               box(selectInput(inputId = "incYear",
-                              label = "Selecciona un ano:",
-                              choices = c("2012" = 2012,
+                              label = "Selecciona un Año:",
+                              choices = c("2011" = 2011,
+                                          "2012" = 2012,
                                           "2013" = 2013,
-                                          "2014" = 2014,
-                                          "2015" = 2015)),
+                                          "2014" = 2014)),
                 
               width = 2)
               ), #end fluidRow
@@ -258,9 +255,9 @@ ui <- dashboardPage(skin = "black",
               fluidRow(
                 box(radioButtons(inputId = "aSex2",
                                  label = "Selecciona un sexo:",
-                                 choices = c("TODOS" = "TODOS",
-                                             "MUJERES" = "MUJERES",
-                                             "VARONES" = "VARONES"),
+                                 choices = c("Todos" = "TODOS",
+                                             "Mujeres" = "MUJERES",
+                                             "Varones" = "VARONES"),
                                  selected = "TODOS"),
                     width = 2),
                 
@@ -269,58 +266,55 @@ ui <- dashboardPage(skin = "black",
                     condition = "input.aSex2 == 'MUJERES'",
                     selectInput(inputId = "femMort",
                                 label = "Selecciona un cancer:",
-                                choices = c("TOTAL" = "TOTAL",
-                                            "PANCREAS" = "PANCREAS",
-                                            "CUELLO DEL UTERO" = "CUELLO DEL UTERO",
-                                            "ESTOMAGO" = "ESTOMAGO",
-                                            "HIGADO" = "HIGADO",
-                                            "COLON" = "COLON",
-                                            "MAMA" = "MAMA",
-                                            "PULMON" = "PULMON",
-                                            "OVARIO" = "OVARIO",
-                                            "LOCALIZAC." = "LOCALIZAC.",
-                                            "LINFOMAS" = "LINFOMAS",
-                                            "LEUCEMIAS" = "LEUCEMIAS"),
+                                choices = c("Total" = "TOTAL",
+                                            "Pancreas" = "PANCREAS",
+                                            "Cuello del Utero" = "CUELLO DEL UTERO",
+                                            "Estomago" = "ESTOMAGO",
+                                            "Higado" = "HIGADO",
+                                            "Colon" = "COLON",
+                                            "Mama" = "MAMA",
+                                            "Pulmon" = "PULMON",
+                                            "Ovario" = "OVARIO",
+                                            "Linfomas" = "LINFOMAS",
+                                            "Leucemias" = "LEUCEMIAS"),
                                 selected = "TOTAL")),
                   
                   conditionalPanel(
                     condition = "input.aSex2 == 'VARONES'",
                     selectInput(inputId = "maleMort",
                                 label = "Selecciona un cancer:",
-                                choices = c("TOTAL" = "TOTAL",
-                                            "PANCREAS" = "PANCREAS",
-                                            "PROSTATA" = "PROSTATA",
-                                            "ESTOMAGO" = "ESTOMAGO",
-                                            "HIGADO" = "HIGADO",
-                                            "COLON" = "COLON",
-                                            "ENCEFALO" = "ENCEFALO",
-                                            "PULMON" = "PULMON",
-                                            "RECTO" = "RECTO",
-                                            "LOCALIZAC." = "LOCALIZAC.",
-                                            "LINFOMAS" = "LINFOMAS",
-                                            "LEUCEMIAS" = "LEUCEMIAS"),
+                                choices = c("Total" = "TOTAL",
+                                            "Pancreas" = "PANCREAS",
+                                            "Prostata" = "PROSTATA",
+                                            "Estomago" = "ESTOMAGO",
+                                            "Higado" = "HIGADO",
+                                            "Colon" = "COLON",
+                                            "Encefalo" = "ENCEFALO",
+                                            "Pulmon" = "PULMON",
+                                            "Recto" = "RECTO",
+                                            "Linfomas" = "LINFOMAS",
+                                            "Leucemias" = "LEUCEMIAS"),
                                 selected = "TOTAL")),
                   
                   conditionalPanel(
                     condition = "input.aSex2 == 'TODOS'",
                     selectInput(inputId = "peopleMort",
                                 label = "Selecciona un cancer:",
-                                choices = c("TOTAL" = "TOTAL",
-                                            "PIEL" = "PIEL",
-                                            "ESTOMAGO" = "ESTOMAGO",
-                                            "GANGLIOS LINF." = "GANGLIOS LINF.",
-                                            "COLON" = "COLON",
-                                            "PULMON" = "PULMON",
-                                            "Y RETICULOEND." = "Y RETICULOEND.",
-                                            "RECTO" = "RECTO",
-                                            "LOCALIZAC." = "LOCALIZAC.",
-                                            "TIROIDES" = "TIROIDES"),
+                                choices = c("Total" = "TOTAL",
+                                            "Piel" = "PIEL",
+                                            "Estomago" = "ESTOMAGO",
+                                            "Ganglios Linf." = "GANGLIOS LINF.",
+                                            "Colon" = "COLON",
+                                            "Pulmon" = "PULMON",
+                                            "Y Reticuloend." = "Y RETICULOEND.",
+                                            "Recto" = "RECTO",
+                                            "Tiroides" = "TIROIDES"),
                                 selected = "TOTAL")),
                   
                   width = 3),
                 
                 box(selectInput(inputId = "mortYear",
-                                label = "Selecciona un ano:",
+                                label = "Selecciona un Año:",
                                 choices = c("2011" = 2011,
                                             "2012" = 2012,
                                             "2013" = 2013,
@@ -358,13 +352,20 @@ server <- function(input, output) {
     
     theSex <- input$incSex
     cancers <- c(input$incCancers, input$incCancers_fem, input$incCancers_male)
-    theData <- filter(CR_1yrRates, sex == theSex, site %in% cancers)
-    
-    ggplot(data = theData) +
-      geom_line(aes(x = as.numeric(year), y = adj.rate, color = site),
+    theData <- filter(CR_1yrRates, sex == theSex, site %in% cancers) %>% 
+      mutate(year = as.numeric(year))
+
+
+   g <-  ggplot(data = theData) +
+      geom_line(aes(x = year, y = adj.rate, color = site, group = site,
+                    text = paste0("Año: ", theData$year, 
+                                  "<br>Tasa Ajustada: ", theData$adj.rate, 
+                                  "<br>Cáncer: ", theData$site)),
                 size = 1.5) +
-      labs(x = "Ano", y = "Tasa por 100 000") +
+      labs(x = "Año", y = "Tasa por 100 000") +
       theme_minimal()
+   
+   ggplotly(g, tooltip = "text")
   })
   
   output$mortTrend <- renderPlotly({
@@ -373,26 +374,26 @@ server <- function(input, output) {
     cancers <- c(input$mortCancers, input$mortCancers_fem, input$mortCancers_male)
     theData <- filter(CR_1yrMortRates, sex == theSex, site %in% cancers)
     
-    ggplot(data = theData) +
-      geom_line(aes(x = as.numeric(year), y = adj.rate, color = site),
+    g <- ggplot(data = theData) +
+      geom_line(aes(x = as.numeric(year), y = adj.rate, color = site, group = site,
+                    text = paste0("Año: ", theData$year, 
+                                         "<br>Tasa Ajustada: ", theData$adj.rate, 
+                                         "<br>Cáncer: ", theData$site)),
                 size = 1.5) +
-      labs(x = "Ano", y = "Tasa por 100 000") +
+      labs(x = "Año", y = "Tasa por 100 000") +
       theme_minimal()
+    
+    ggplotly(g, tooltip = "text")
 
   })
   
-  casesTable_fun <- reactive({
-    cases14
-    
-  })
   
   output$casesTable <- renderDT({
    datatable(
-     casesTable_fun(),
+     cases14,
      rownames = FALSE,
      colnames = c("Cancer", "Casos"),
-     options = list(sDom  = '<"top">lrt<"bottom">',
-                    lengthChange = FALSE, autoHideNavigation = TRUE)
+     options = list(paging = FALSE)
    )
   })
   
@@ -400,8 +401,7 @@ server <- function(input, output) {
     datatable(
       mort14[c(2,5)],
       colnames = c("Cancer", "Casos"),
-      options = list(sDom  = '<"top">lrt<"bottom">',
-                     lengthChange = FALSE, autoHideNavigation = TRUE)
+      options = list(paging = FALSE)
     )
   })
   
@@ -418,7 +418,7 @@ server <- function(input, output) {
     }
     
     paste0("Incendencia de cancer por 100 000 personas -- ", "Cancer: ", theCancer, 
-           ", Ano: ", input$incYear)
+           ", Año: ", input$incYear)
   })
   
   output$incMap <- renderLeaflet({
@@ -483,7 +483,7 @@ server <- function(input, output) {
     }
     
     paste0("Mortalidad de cancer por 100 000 personas -- ", "Cancer: ", theCancer, 
-           ", Ano: ", input$mortYear)
+           ", Año: ", input$mortYear)
   })
   
   output$mortMap <- renderLeaflet({
@@ -616,7 +616,7 @@ server <- function(input, output) {
       x <- select(x, c(Cancer,Todos))
     }
     
-    paste0("Tasa de pais: ", as.character(x[x$Cancer == theCancer,2]), " por 100 000 personas")
+    paste0("Tasa Ajustada de 5 Años de Pais: ", as.character(x[x$Cancer == theCancer,2]), " por 100 000 Personas")
     
   })
   
@@ -638,7 +638,7 @@ server <- function(input, output) {
       x <- filter(x, site == theCancer, sex == "TODOS", year == theYear)
     }
     
-    paste0("Tasa de pais: ", as.character(x$adj.rate), " por 100 000 personas")
+    paste0("Tasa Ajustada de 5 Años de Pais: ", as.character(x$adj.rate), " por 100 000 Personas")
     
   })
 } # end server
