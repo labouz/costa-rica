@@ -1,4 +1,6 @@
 library(shiny)
+library(shinyjs)
+library(shinyhelper)
 library(leaflet) 
 library(rgdal) 
 library(leaflet.extras)
@@ -10,6 +12,9 @@ library(dplyr)
 library(stringr)
 library(ggplot2)
 library(plotly)
+
+#source code that gets vector of sites for incidence and mort trend plots
+source("getSiteNames.R")
 
 regions <- rgdal::readOGR("maps/CRI_adm","CRI_adm1")
 
@@ -33,11 +38,8 @@ cantonMort <- readRDS("./data/cantonMortality.rds")
 #country cases
 cases14 <- readRDS("./data/2014CancerCases.rds")
 
-#country mort
+#country mort cases
 mort14 <- readRDS("./data/2014CancerMort.rds")
-
-#country trends
-topRates09_14 <- readRDS("./data/topRates09_14.rds")
 
 
 pal <- colorFactor(viridis_pal()(10), levels = regions$ID_1)
@@ -81,40 +83,40 @@ ui <- dashboardPage(skin = "black",
                                                       "Varones" = "VARONES"))
                       ),
                       column(width = 4,
+                             style = "height:200px; overflow-y: scroll;",
                              checkboxGroupInput(inputId = "incCancers",
                                                 label = "selecciona un cancer:",
-                                                choices = c("Total" = "TOTAL",
-                                                            "Piel" = "PIEL",
-                                                            "Estomago" = "ESTOMAGO",
-                                                            "Ganglios Linfaticos" = "GANGLIOS LINFATICOS",
-                                                            "Colon" = "COLON",
-                                                            "Hematopoyetico y Reticuloendotelial" = "SISTEMAS HEMATOPOYETICO Y RETICULOENDOTELIAL",
-                                                            "Tiroides" = "GLANDULA TIROIDES"),
-                                                selected = c("PIEL","COLON","ESTOMAGO",
-                                                             "GLANDULA TIROIDES",
-                                                             "GANGLIOS LINFATICOS"))
+                                                choices = names(siteNames),
+                                                selected = c("Colon","Estomago",
+                                                             "Glandula Tiroides",
+                                                             "Bronquios y Pulmon"))
                       ),
                       column(width = 2,
                              conditionalPanel(condition = "input.incSex == 'MUJERES'",
                                               checkboxGroupInput(inputId = "incCancers_fem",
                                                                  label = "cánceres superiores para las mujeres:",
-                                                                 choices = c("Mama" = "MAMA",
-                                                                             "Ovario" = "OVARIO",
-                                                                             "Cuello Uterino" = "CUELLO UTERINO",
-                                                                             "Cuerpo Uterino" = "CUERPO UTERINO"))),
+                                                                 choices = c("Mama" = "Mama",
+                                                                             "Ovario" = "Ovario",
+                                                                             "Cuello Uterino" = "Cuello Uterino",
+                                                                             "Cuerpo Uterino" = "Cuerpo Uterino"))),
                              conditionalPanel(condition = "input.incSex == 'VARONES'",
                                               checkboxGroupInput(inputId = "incCancers_male",
                                                                  label = "cánceres superiores para los hombres:",
-                                                                 choices = c("Prostata" = "GLANDULA PROSTATICA",
-                                                                             "Testiculos" = "TESTICULOS",
-                                                                             "Rinon" = "RIÑON",
-                                                                             "Vejiga" = "VEJIGA URINARIA",
-                                                                             "Higado" = "HIGADO Y CONDUCTOS BILIARES INTRAHEPATICOS",
-                                                                             "Bronquios y Pulmon" = "BRONQUIOS Y PULMON")))
+                                                                 choices = c("Prostata" = "Glandula Prostatica",
+                                                                             "Testiculos" = "Testiculos",
+                                                                             "Pene" = "Pene",
+                                                                             "Mama Masculina" = "Mama Masculina")))
                       )),
-                    fluidRow(             
-                      plotlyOutput("incTrend"),
+                    fluidRow(
+                      column(
+                      plotlyOutput("incTrend") %>% 
+                        helper(size = "l",
+                               type = "inline",
+                               content = "this is help"),
                       width = 12
+                      
+                      )
+                      
                     ),
                     br(),
                     br(),
@@ -130,35 +132,34 @@ ui <- dashboardPage(skin = "black",
                                                             "Varones" = "VARONES"))
                             ),
                             column(width = 4,
+                                   style = "height:200px; overflow-y: scroll;",
                                    checkboxGroupInput(inputId = "mortCancers",
                                                       label = "selecciona un cancer:",
-                                                      choices = c("Total" = "TOTAL",
-                                                                  "Encefalo" = "ENCEFALO",
-                                                                  "Estomago" = "ESTOMAGO",
-                                                                  "Pancreas" = "PANCREAS",
-                                                                  "Vejiga" = "VEJIGA URINARIA",
-                                                                  "Bronquis" = "BRONQUIOS Y PULMON",
-                                                                  "Colon" = "COLON",
-                                                                  "Leucemia" = "LEUCEMIA LINFOIDE",
-                                                                  "Higado" = "HIGADO Y VIAS BILIARES INTRAH."),
-                                                      selected = c("PANCREAS","COLON","ESTOMAGO",
-                                                                   "ENCEFALO",
-                                                                   "VEJIGA URINARIA"))
+                                                      choices = names(mortNames),
+                                                      selected = c("Bronquios y Pulmon","Colon","Estomago",
+                                                                   "Higado y Vias Biliares Intrah."))
                             ),
                             column(width = 2,
                                    conditionalPanel(condition = "input.mortSex == 'MUJERES'",
                                                     checkboxGroupInput(inputId = "mortCancers_fem",
                                                                        label = "cánceres superiores para las mujeres:",
-                                                                       choices = c("Mama" = "MAMA",
-                                                                                   "Ovario" = "OVARIO",
-                                                                                   "Cuello Uterino" = "CUELLO UTERINO"))),
+                                                                       choices = c("Mama" = "Mama",
+                                                                                   "Ovario" = "Ovario",
+                                                                                   "Cuello Del Utero" = "Cuello Del Utero",
+                                                                                   "Cuerpo Del Utero" = "Cuerpo Del Utero",
+                                                                                   "Vuvla" = "Vulva"))),
                                    conditionalPanel(condition = "input.mortSex == 'VARONES'",
                                                     checkboxGroupInput(inputId = "mortCancers_male",
                                                                        label = "cánceres superiores para los hombres:",
-                                                                       choices = c("Prostata" = "GLANDULA PROSTATICA")))
+                                                                       choices = c("Prostata" = "Prostata",
+                                                                                   "Testiculo" = "Testiculo",
+                                                                                   "Pene" = "Pene")))
                             )),
                           fluidRow(             
-                            plotlyOutput("mortTrend"),
+                            plotlyOutput("mortTrend")%>% 
+                              helper(size = "l",
+                                     type = "inline",
+                                     content = "this is help"),
                             width = 12
                           )
                       )#end box
@@ -243,8 +244,12 @@ ui <- dashboardPage(skin = "black",
               fluidRow(
                 box(title = HTML(paste(textOutput("incTitle"), 
                                        textOutput("countryInc"), sep = "<br/>")),
+                    
                     width = 12,
-                    leafletOutput(outputId = "incMap", height = 400))
+                    leafletOutput(outputId = "incMap", height = 400)%>% 
+                      helper(size = "l",
+                             type = "inline",
+                             content = "this is help"))
               ),
               br(),
               br()
@@ -328,7 +333,10 @@ ui <- dashboardPage(skin = "black",
               fluidRow(
                 box(title = HTML(paste(textOutput("mortTitle"), textOutput("countryMort"), sep = "<br/>")),
                     width = 12,
-                    leafletOutput(outputId = "mortMap", height = 400))
+                    leafletOutput(outputId = "mortMap", height = 400)%>% 
+                      helper(size = "l",
+                             type = "inline",
+                             content = "this is help"))
               ),
               br(),
               br()
@@ -346,7 +354,9 @@ ui <- dashboardPage(skin = "black",
 ) #end UI dashboardPage
 
 
-server <- function(input, output) {
+server <- function(input, output, session) {
+  
+  observe_helpers(withMathJax = TRUE)
   
   output$incTrend <- renderPlotly({
     
@@ -365,7 +375,7 @@ server <- function(input, output) {
       labs(x = "Año", y = "Tasa por 100 000") +
       theme_minimal()
    
-   ggplotly(g, tooltip = "text")
+   ggplotly(g, tooltip = "text") %>% config(displayModeBar = F) 
   })
   
   output$mortTrend <- renderPlotly({
@@ -383,7 +393,7 @@ server <- function(input, output) {
       labs(x = "Año", y = "Tasa por 100 000") +
       theme_minimal()
     
-    ggplotly(g, tooltip = "text")
+    ggplotly(g, tooltip = "text") %>% config(displayModeBar = F) 
 
   })
   

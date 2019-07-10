@@ -1,24 +1,43 @@
 #one year age adjusted incidence and mortaltiy rates 2009-2014
-#for 10 cancers 
-#for each sec and both
+#for all cancers 
+#for each sex and both
 
 library(tidyverse)
 library(epitools)
 library(readxl)
+library(lettercase)
 
 #####FUNCTIONS
 #function to extract cases and pop at risk by year and sex
-# getMort <- function(theYear, theSex) {
-#   mort_cases <- read_excel(paste0("data/raw/Mortality/MORT.", theSex, " POR LOCALIZ.Y GRUP.EDAD ", theYear,".xls"),
-#                              sheet = "top10")
-# 
-#   mort_cases <- mort_cases[,-2:-3]
-# 
-#   #transform from wide to long
-#   mort_cases2 <-  gather(mort_cases, key = "agegrp", value = "cases", -LOCALIZACION) %>%
-#     mutate(year = theYear, sex = theSex)
-# 
-# }
+getMort <- function(theYear, theSex) {
+  mort_cases <- read_excel(paste0("data/raw/Mortality/MORT.", theSex, " POR LOCALIZ.Y GRUP.EDAD ", theYear,".xls"),
+                             sheet = "Número", range = "A1:T124")
+
+  mort_cases <- mort_cases %>%
+    select(-TOTAL, -'...3', "site" = '...2',"CIE" = "LOCALIZACION") %>%
+    filter(!site %in% c(NA)) %>% 
+    #give a C# to the Total group
+    mutate(CIE = if_else(CIE == "CIE-10", "Cxx", CIE))
+  
+  #remove the unspecified sites
+  mort_cases2 <- mort_cases %>% 
+    filter(!CIE %in% c("C02","C06","C08","C14","C26","C39","C41","C44","C55",
+                       "C57","C63","C68","C75","C76","C77","C78","C79","C80",
+                       "C88","C94","C95","C96","C97"))
+  
+  #the names of several cancers are spread on multiple rows: collapsing them
+  mort_cases2 <- mort_cases2 %>% 
+    group_by(CIE) %>% 
+    mutate(site = str_c(site, collapse = " ")) %>%
+    #omitting the duplicate rows of NA
+    na.omit('0-4') 
+
+  #transform from wide to long
+  mort_cases3 <-  gather(mort_cases2, key = "agegrp", value = "cases", 
+                         -site, -CIE) %>%
+    mutate(year = theYear, sex = theSex)
+
+}
 
 #add 2015 to popatRisk data
 #popAtRisk <- readRDS("./data/popAtRisk_2009-2014.rds")
@@ -67,13 +86,14 @@ mortCases_bysex <- map2_dfr(args$theYear, args$theSex, getMort) %>%
 #####Create everyone groups
 
 mortCases_todos <- mortCases_bysex %>%
-  group_by(LOCALIZACION, agegrp, year) %>%
+  group_by(CIE,site, agegrp, year) %>%
   summarise(cases = sum(as.numeric(cases))) %>%
   mutate(sex = "TODOS")
 
 #bind to cases
 mortCases <- bind_rows(mortCases_bysex, mortCases_todos) %>% 
-  mutate(sex = if_else(sex == "HOMBRES", "VARONES", sex))
+  mutate(sex = if_else(sex == "HOMBRES", "VARONES", sex))%>% 
+  mutate(site = str_ucfirst(str_decapitalize(site)))
 
 #saveRDS(mortCases, "./data/mortCases_2012-2015.rds")
 
@@ -86,7 +106,7 @@ standPop <- readRDS("./data/standPop.rds")
 
 #####Age-adjusted rates
 
-rateArgs <- expand.grid(theCancer = unique(mortCases$LOCALIZACION),
+rateArgs <- expand.grid(theCancer = unique(mortCases$site),
                         theYear = 2012:2015, 
                         theSex = c("VARONES", "MUJERES", "TODOS"),
                         stringsAsFactors = FALSE)
@@ -94,7 +114,7 @@ rateArgs <- expand.grid(theCancer = unique(mortCases$LOCALIZACION),
 makeRate <- function(theCancer, theYear, theSex){
   
   cancer <- mortCases %>% 
-    filter(LOCALIZACION == theCancer,
+    filter(site == theCancer,
            year == theYear,
            sex == theSex)
   atRisk <- popAtRisk %>% 
@@ -125,9 +145,14 @@ CR_mortRates <- lapply(1:nrow(rateArgs), function(row){
 
 CR_mortRates_df <- data.frame(matrix(unlist(CR_mortRates,
                                            use.names = TRUE),
-                                    nrow = 240, byrow = TRUE), stringsAsFactors = FALSE) %>% 
+                                    nrow = 804, byrow = TRUE), stringsAsFactors = FALSE) %>% 
   mutate_at(vars(X1:X4), funs(as.numeric))
 
 names(CR_mortRates_df) <- names(CR_mortRates[[1]])
+
+#filter rows  n<10
+CR_mortRates_df <- CR_mortRates_df %>% 
+  mutate(count = as.numeric(count)) %>% 
+  filter(count > 10)
 
 saveRDS(CR_mortRates_df, "./data/CR_mortRates.rds")
