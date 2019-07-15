@@ -10,6 +10,7 @@ library(shinythemes)
 library(DT)
 library(dplyr)
 library(stringr)
+library(lettercase)
 library(ggplot2)
 library(plotly)
 
@@ -24,6 +25,9 @@ regions@data$NAME_1 <-  str_replace(regions@data$NAME_1, "San José", "San Jose"
 
 #country 5 yr incidence rates
 countryRate <- readRDS(file = "data/rateDF.Rda")
+
+#country 4yr mortality rates
+countryMortRate <- readRDS("data/CR_4yrMortRates.rds")
 
 #country 1 yr incidence rates
 CR_1yrRates <- readRDS("./data/CR_incRates.rds")
@@ -306,14 +310,14 @@ ui <- dashboardPage(skin = "black",
                     selectInput(inputId = "peopleMort",
                                 label = "Selecciona un cancer:",
                                 choices = c("Total" = "TOTAL",
-                                            "Piel" = "PIEL",
                                             "Estomago" = "ESTOMAGO",
-                                            "Ganglios Linf." = "GANGLIOS LINF.",
+                                            "Higado" = "HIGADO",
                                             "Colon" = "COLON",
+                                            "Leucemias" = "LEUCEMIAS",
                                             "Pulmon" = "PULMON",
-                                            "Y Reticuloend." = "Y RETICULOEND.",
-                                            "Recto" = "RECTO",
-                                            "Tiroides" = "TIROIDES"),
+                                            "Linfomas" = "LINFOMAS",
+                                            "Mama" = "MAMA",
+                                            "Pancreas" = "PANCREAS"),
                                 selected = "TOTAL")),
                   
                   width = 3),
@@ -547,68 +551,6 @@ server <- function(input, output, session) {
   })
   
   
-  
-  
-    
-  # site <- reactive({
-  #   input$map_shape_click
-  # }) # end reactive site
-  # 
-  # observeEvent(input$map_shape_click, {
-  #   leafletProxy( mapId = "map" ) %>%
-  #     addPolylines(data = regions 
-  #                  , layerId = site()[1]
-  #                  , color = "black"
-  #                  , weight = 2
-  #                  , opacity = 1
-  #     ) # end addPolylines
-  #   
-  #   leafletProxy( mapId = "map" ) %>%
-  #     addPolylines( data = regions[which(regions$NAME_1 == site()[1]), ]
-  #                   , layerId = site()[1]
-  #                   , color = "blue"
-  #                   , weight = 2
-  #                   , opacity = 1
-  #     ) # end addPolylines
-  #   
-  # }) # end observeEvent shape click
-  
-
-  # output$regionRates <- renderText({
-  #   if (!is.null(site())) { 
-  #     paste("Cancer rate for ", site()[1])
-  #   } else {
-  #     paste("Choose a canton to see cancer details")
-  #   }
-  # }) # end renderText output$thePlace
-  
- 
-  # output$theRegion <- renderText({paste0(
-  #   "Incidencia de Cancer - Tasa por 100 000 personas:  ", site()[1])
-  #   })
-  # 
-  # 
-  # output$regionRates_M <- renderDT({
-  #   req(site())
-  #   datatable(cantonInc[cantonInc$`PROVINCIA Y CANTON` == toupper(site()[1]) &
-  #                         cantonInc$sex == "VARONES", c(2,4)],
-  #             colnames = c("Tumores", "Tasa"),
-  #             options = list(sDom  = '<"top">lrt<"bottom">ip',
-  #                            lengthChange = FALSE) # no search bar or dropdown
-  #   ) # end datatable
-  # })
-  # 
-  # 
-  # output$regionRates_F <- renderDT({
-  #   req(site())
-  #   datatable(cantonInc[cantonInc$`PROVINCIA Y CANTON` == toupper(site()[1]) &
-  #                         cantonInc$sex == "MUJERES", c(2,4)],
-  #             colnames = c("Tumores", "Tasa"),
-  #             options = list(sDom  = '<"top">lrt<"bottom">ip',
-  #                            lengthChange = FALSE) # no search bar or dropdown
-  #   ) # end datatable
-  # })
-  
   output$countryInc <- renderText({
     x <- as_tibble(countryRate[, c(1, 3, 7, 11)])
     colnames(x) <- c("Cancer", "Mujeres", "Hombres", "Todos")
@@ -632,23 +574,23 @@ server <- function(input, output, session) {
   
   
   output$countryMort <- renderText({
-    x <- CR_1yrMortRates
-    theYear <- input$mortYear
+    #browser()
+    x <- countryMortRate
     
     if(input$aSex == "MUJERES"){
-      theCancer <- input$femMort
-      x <- filter(x, site == theCancer, sex == "MUJERES", year == theYear)
+      theCancer <- str_ucfirst(str_decapitalize(input$femMort))
+      x <- filter(x, site == theCancer, sex == "MUJERES")
     }
     if(input$aSex == "VARONES"){
-      theCancer <- input$maleMort
-      x <- filter(x, site == theCancer, sex == "VARONES", year == theYear)
+      theCancer <- str_ucfirst(str_decapitalize(input$maleMort))
+      x <- filter(x, site == theCancer, sex == "VARONES")
     }
     if(input$aSex == "TODOS"){
-      theCancer <- input$peopleMort
-      x <- filter(x, site == theCancer, sex == "TODOS", year == theYear)
+      theCancer <- str_ucfirst(str_decapitalize(input$peopleMort))
+      x <- filter(x, site == theCancer, sex == "TODOS")
     }
     
-    paste0("Tasa Ajustada de 5 Años de Pais: ", as.character(x$adj.rate), " por 100 000 Personas")
+    paste0("Tasa Ajustada de 4 Años de Pais: ", as.character(x$adj.rate), " por 100 000 Personas")
     
   })
 } # end server
